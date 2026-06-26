@@ -133,10 +133,16 @@ function saveUsers(users) {
 
 // ===== 5. VISTAS Y RENDERIZADO DE INTERFAZ (UI) =====
 
+// Variable global para controlar el intervalo del temporizador y que no se duplique
+let intervalCupones = null;
+
 async function renderCoupons() {
   let list = document.getElementById("couponList");
   let userEmail = localStorage.getItem("loggedUser");
   if (!list || !userEmail) return;
+
+  // Limpiamos cualquier intervalo previo para evitar que el reloj se vuelva loco
+  if (intervalCupones) clearInterval(intervalCupones);
 
   list.innerHTML = "<p style='opacity:0.7'>Buscando cupones activos... ⏳</p>";
 
@@ -155,64 +161,140 @@ async function renderCoupons() {
   }
 
   list.innerHTML = "";
-
   const codigosCanjeados = canjeados.map(c => c.codigo_cupon);
-  const ahora = new Date();
-  const diaHoy = ahora.toLocaleDateString('es-ES', { weekday: 'long' }); 
-  const diaHoyFormateado = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
 
-  const cuponesVisibles = cupones.filter(cupon => {
-    if (codigosCanjeados.includes(cupon.codigo)) return false;
-    const fechaFin = new Date(cupon.fecha_fin);
-    const fechaInicio = new Date(cupon.fecha_inicio);
-    if (ahora < fechaInicio || ahora > fechaFin) return false;
-    if (cupon.dias_permitidos && cupon.dias_permitidos.length > 0) {
-      return cupon.dias_permitidos.includes(diaHoyFormateado);
+  // Guardamos las referencias de los elementos que necesitan temporizador
+  const elementosConContador = [];
+
+  function actualizarFiltroyRelojes() {
+    const ahora = new Date();
+    const diaHoy = ahora.toLocaleDateString('es-ES', { weekday: 'long' }); 
+    const diaHoyFormateado = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+
+    // FILTRO MODIFICADO: Ahora permitimos cupones cuyo inicio sea FUTURO (espera de 24h)
+    const cuponesVisibles = cupones.filter(cupon => {
+      if (codigosCanjeados.includes(cupon.codigo)) return false; // Ya canjeado, no se muestra
+      
+      const fechaFin = new Date(cupon.fecha_fin);
+      if (ahora > fechaFin) return false; // Ya expiró por completo, no se muestra
+
+      // Si tiene días específicos permitidos, comprobamos hoy
+      if (cupon.dias_permitidos && cupon.dias_permitidos.length > 0) {
+        return cupon.dias_permitidos.includes(diaHoyFormateado);
+      }
+      return true;
+    });
+
+    if (cuponesVisibles.length === 0) {
+      list.innerHTML = "<p style='opacity:0.7'>No tienes cupones disponibles en este momento 🎟️</p>";
+      return;
     }
-    return true;
-  });
 
-  if (cuponesVisibles.length === 0) {
-    list.innerHTML = "<p style='opacity:0.7'>No tienes cupones disponibles en este momento 🎟️</p>";
-    return;
+    // Si es la primera ejecución del ciclo, dibujamos el HTML básico
+    if (list.children.length === 0) {
+      cuponesVisibles.forEach((cupon, index) => {
+        const fechaInicio = new Date(cupon.fecha_inicio);
+        const estaEnEspera = ahora < fechaInicio; // ¿Está en las 24hs de espera?
+
+        let itemDiv = document.createElement("div");
+        itemDiv.className = "coupon-item";
+        itemDiv.id = `coupon-${index}`;
+        
+        // Si está en espera, le aplicamos opacidad y deshabilitamos los clics
+        if (estaEnEspera) {
+          itemDiv.style.opacity = "0.45";
+          itemDiv.style.filter = "grayscale(60%)";
+          itemDiv.style.cursor = "not-allowed";
+        }
+
+        let badgeTexto = "";
+        if (cupon.porcentaje_descuento !== null && cupon.porcentaje_descuento !== undefined) {
+          badgeTexto = `-${cupon.porcentaje_descuento}%`;
+        } else if (cupon.descripcion) {
+          badgeTexto = cupon.descripcion;
+        }
+
+        let detalleInterno = cupon.descripcion ? `<b>Beneficio:</b> ${cupon.descripcion}<br>` : '';
+
+        // Definimos la acción del clic: si está bloqueado, no hace nada
+        const clickAccion = estaEnEspera 
+          ? `alert('Este cupón se activará automáticamente cuando finalice la cuenta regresiva.')` 
+          : `toggleCouponDesplegable('${index}')`;
+
+        itemDiv.innerHTML = `
+          <div class="coupon-header" onclick="${clickAccion}">
+            <span class="coupon-text">🎟️ ${cupon.codigo}</span>
+            <span id="badge-${index}" style="color: #ffeb3b; font-weight: bold; font-size: 14px; text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${estaEnEspera ? '⏳ Bloqueado' : badgeTexto + ' 👇'}
+            </span>
+          </div>
+          <div class="coupon-body" id="body-${index}">
+            <div class="coupon-details">
+              ${detalleInterno}
+              <strong>Válido hasta:</strong> ${new Date(cupon.fecha_fin).toLocaleString('es-ES')}<br>
+              Muestra este código QR en caja para aplicar tu beneficio.
+            </div>
+            <div class="qr-container" id="qr-${index}"></div>
+          </div>
+        `;
+
+        list.appendChild(itemDiv);
+
+        // Guardamos los datos para procesar el contador si está en espera
+        if (estaEnEspera) {
+          elementosConContador.push({ index, fechaInicio, itemDiv, badgeTexto, codigo: cupon.codigo, userEmail });
+        } else {
+          // Si ya está activo de una, le generamos el código QR de inmediato
+          generarQRUnico(index, userEmail, cupon.codigo);
+        }
+      });
+    }
+
+    // Actualizamos los textos de los contadores regresivos en tiempo real
+    elementosConContador.forEach(item => {
+      const tiempoRestante = item.fechaInicio - new Date();
+
+      if (tiempoRestante <= 0) {
+        // ¡El tiempo terminó! Activamos el cupón en la pantalla de inmediato
+        item.itemDiv.style.opacity = "1";
+        item.itemDiv.style.filter = "none";
+        item.itemDiv.style.cursor = "pointer";
+        
+        const header = item.itemDiv.querySelector('.coupon-header');
+        header.setAttribute('onclick', `toggleCouponDesplegable('${item.index}')`);
+        
+        document.getElementById(`badge-${item.index}`).innerText = `${item.badgeTexto} 👇`;
+        
+        // Le generamos su QR correspondiente ahora que ya es utilizable
+        generarQRUnico(item.index, item.userEmail, item.codigo);
+      } else {
+        // Calculamos Horas y Minutos restantes
+        const totalMinutos = Math.floor(tiempoRestante / (1000 * 60));
+        const horas = Math.floor(totalMinutos / 60);
+        const minutos = totalMinutos % 60;
+
+        // Formateamos para que siempre muestre dos dígitos (Ej: 05h : 09m)
+        const horasStr = horas.toString().padStart(2, '0');
+        const minutosStr = minutos.toString().padStart(2, '0');
+
+        document.getElementById(`badge-${item.index}`).innerText = `⏳ Disponible en ${horasStr}:${minutosStr}`;
+      }
+    });
   }
 
-  cuponesVisibles.forEach((cupon, index) => {
-    let itemDiv = document.createElement("div");
-    itemDiv.className = "coupon-item";
-    itemDiv.id = `coupon-${index}`;
+  // Ejecutamos la función por primera vez de inmediato
+  actualizarFiltroyRelojes();
 
-    // Validar dinámicamente qué texto mostrar a la derecha del cupón
-    let badgeTexto = "";
-    if (cupon.porcentaje_descuento !== null && cupon.porcentaje_descuento !== undefined) {
-      badgeTexto = `-${cupon.porcentaje_descuento}%`;
-    } else if (cupon.descripcion) {
-      badgeTexto = cupon.descripcion;
-    }
+  // Dejamos corriendo un intervalo que actualiza los minutos cada 10 segundos para máxima precisión
+  intervalCupones = setInterval(actualizarFiltroyRelojes, 10000);
+}
 
-    // Texto descriptivo detallado para el cuerpo interno del acordeón
-    let detalleInterno = cupon.descripcion ? `<b>Beneficio:</b> ${cupon.descripcion}<br>` : '';
-
-    itemDiv.innerHTML = `
-      <div class="coupon-header" onclick="toggleCouponDesplegable('${index}')">
-        <span class="coupon-text">🎟️ ${cupon.codigo}</span>
-        <span style="color: #ffeb3b; font-weight: bold; font-size: 14px; text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${badgeTexto} 👇</span>
-      </div>
-      <div class="coupon-body">
-        <div class="coupon-details">
-          ${detalleInterno}
-          <strong>Válido hasta:</strong> ${new Date(cupon.fecha_fin).toLocaleString('es-ES')}<br>
-          Muestra este código QR en caja para aplicar tu beneficio.
-        </div>
-        <div class="qr-container" id="qr-${index}"></div>
-      </div>
-    `;
-
-    list.appendChild(itemDiv);
-
-    const stringQR = `${userEmail}|${cupon.codigo}`;
-
-    new QRCode(document.getElementById(`qr-${index}`), {
+// Función auxiliar limpia para evitar duplicar código QR
+function generarQRUnico(index, email, codigo) {
+  const contenedorQR = document.getElementById(`qr-${index}`);
+  if (contenedorQR && contenedorQR.children.length === 0) {
+    const stringQR = `${email}|${codigo}`;
+    new QRCode(contenedorQR, {
       text: stringQR,
       width: 130,
       height: 130,
@@ -220,7 +302,7 @@ async function renderCoupons() {
       colorLight : "#ffffff",
       correctLevel : QRCode.CorrectLevel.H
     });
-  });
+  }
 }
 
 function toggleCouponDesplegable(index) {
