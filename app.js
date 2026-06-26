@@ -12,13 +12,16 @@ let intervalCupones = null;
 
 // ===== 2. CONTROL DE FLUJO AL CARGAR LA PÁGINA (window.onload) =====
 window.onload = async function () {
+  // 1. Obtenemos la sesión real y activa de Supabase
   const { data: { session }, error } = await supabaseClient.auth.getSession();
 
   if (session && session.user) {
-    localStorage.setItem("loggedUser", session.user.email);
-    registrarEnListaLocal(session.user.email);
+    const email = session.user.email;
+    localStorage.setItem("loggedUser", email);
+    registrarEnListaLocal(email);
 
-    if (session.user.email === ADMIN_USER) {
+    // Verificación estricta: Solo si el email es exactamente el admin configurado
+    if (email === ADMIN_USER) {
       localStorage.setItem("isAdmin", "true");
       showAdminPanel();
     } else {
@@ -26,23 +29,20 @@ window.onload = async function () {
       showApp();
     }
   } else {
-    let localUser = localStorage.getItem("loggedUser");
-    let localIsAdmin = localStorage.getItem("isAdmin");
-    if (localUser === ADMIN_USER && localIsAdmin === "true") {
-      showAdminPanel();
-    } else {
-      localStorage.removeItem("loggedUser");
-      localStorage.removeItem("isAdmin");
-      showLogin();
-    }
+    // Si no hay ninguna sesión activa en Supabase, limpiamos todo rastro por seguridad
+    localStorage.removeItem("loggedUser");
+    localStorage.removeItem("isAdmin");
+    showLogin();
   }
 
+  // 2. Escuchador en tiempo real para cambios de estado (Login / Logout / Google Redirect)
   supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session && session.user) {
-      localStorage.setItem("loggedUser", session.user.email);
-      registrarEnListaLocal(session.user.email);
+      const email = session.user.email;
+      localStorage.setItem("loggedUser", email);
+      registrarEnListaLocal(email);
       
-      if (session.user.email === ADMIN_USER) {
+      if (email === ADMIN_USER) {
         localStorage.setItem("isAdmin", "true");
         showAdminPanel();
       } else {
@@ -195,7 +195,7 @@ function showAdminPanel() {
 }
 
 // ===== 5. LÓGICA DE RENDERS Y CUPONES =====
-// ===== 5. LÓGICA DE RENDERS Y CUPONES =====
+
 async function renderCoupons() {
   let list = document.getElementById("couponList");
   let userEmail = localStorage.getItem("loggedUser");
@@ -298,10 +298,11 @@ async function renderCoupons() {
         itemDiv.innerHTML = `
           <div class="coupon-header" onclick="${clickAccion}">
             <span class="coupon-text">${tituloVisual}</span>
-            <span id="badge-${index}" style="color: #ffeb3b; font-weight: bold; font-size: 13px; text-align: right; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <span id="badge-${index}" style="color: #ffeb3b; font-weight: bold;">
               ${badgeInicial}
             </span>
           </div>
+
           <div class="coupon-body" id="body-${index}">
             <div class="coupon-details">
               ${detalleInterno}
@@ -396,6 +397,7 @@ function toggleCouponDesplegable(index) {
 }
 
 // ===== 6. PANEL DE ADMINISTRADOR & ESCÁNER =====
+
 function iniciarEscaneoCamara() {
   if (html5QrcodeScanner) {
     alert("La cámara ya está encendida.");
@@ -407,8 +409,25 @@ function iniciarEscaneoCamara() {
     return;
   }
 
+  // 🚀 Forzamos a mostrar el contenedor envoltorio antes de arrancar la cámara
+  const wrapper = document.getElementById("camera-wrapper");
+  const readerDiv = document.getElementById("reader");
+  if (wrapper && readerDiv) {
+    wrapper.style.display = "block";
+    readerDiv.innerHTML = ""; 
+  }
+
   html5QrcodeScanner = new Html5Qrcode("reader");
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  
+  // Configuración responsiva para que se adapte perfectamente al recuadro en móviles
+  const config = { 
+    fps: 15, 
+    qrbox: function(viewfinderWidth, viewfinderHeight) {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      const edgeSize = Math.floor(minEdge * 0.7);
+      return { width: edgeSize, height: edgeSize };
+    }
+  };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" }, 
@@ -416,6 +435,7 @@ function iniciarEscaneoCamara() {
     onQrScanSuccess
   ).catch(err => {
     alert("Error al acceder a la cámara: " + err);
+    if (wrapper) wrapper.style.display = "none";
     html5QrcodeScanner = null;
   });
 }
@@ -459,6 +479,9 @@ function detenerEscaneoCamara() {
     html5QrcodeScanner.stop().then(() => {
       html5QrcodeScanner = null;
       document.getElementById("reader").innerHTML = ""; 
+      // 🚀 Ocultamos el contenedor al apagar
+      const wrapper = document.getElementById("camera-wrapper");
+      if (wrapper) wrapper.style.display = "none";
     }).catch(err => console.error("Error al apagar cámara", err));
   }
 }

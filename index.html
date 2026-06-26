@@ -108,9 +108,11 @@
         <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
           <button type="button" onclick="iniciarEscaneoCamara()" style="background-color: #2ecc71; margin: 0;">Activar Cámara</button>
           <button type="button" onclick="detenerEscaneoCamara()" class="delete-btn" style="margin: 0;">Apagar</button>
-        </div>
-        <div id="reader"></div>
-      </div>
+  </div>
+  <div id="camera-wrapper" style="width: 100%; min-height: 300px; display: none; background: #111; border-radius: 10px; overflow: hidden;">
+    <div id="reader" style="width: 100% !important;"></div>
+  </div>
+</div>
 
       <div class="admin-box">
         <h3>👥 Usuarios Registrados (Local)</h3>

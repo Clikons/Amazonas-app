@@ -103,10 +103,11 @@ button:hover {
 
 .scanner-section #reader {
   width: 100%;
-  background: #fff;
+  min-height: 250px; /* Le da tamaño al recuadro para que no colapse */
+  background: #222;  /* Fondo oscuro mientras carga la cámara */
   border-radius: 10px;
   overflow: hidden;
-  display: none;
+  display: block;    /* Asegura que siempre sea visible */
 }
 
 #reader {
