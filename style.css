@@ -1,3 +1,6 @@
+/* ==========================================================
+   1. ESTILOS BASE Y CONTENEDOR PRINCIPAL
+========================================================== */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -23,6 +26,14 @@ body {
   box-sizing: border-box;
 }
 
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+/* ==========================================================
+   2. ELEMENTOS DE FORMULARIO Y BOTONES
+========================================================== */
 input {
   display: block;
   width: 100%;
@@ -63,6 +74,9 @@ button:hover {
   background-color: #b71c1c !important;
 }
 
+/* ==========================================================
+   3. PANEL DE ADMINISTRACIÓN Y ESCÁNER QR
+========================================================== */
 .admin-box {
   margin-top: 20px;
   padding: 20px;
@@ -75,14 +89,6 @@ button:hover {
   margin-top: 0;
 }
 
-.scanner-section #reader {
-  width: 100%;
-  background: #fff;
-  border-radius: 10px;
-  overflow: hidden;
-  display: none;
-}
-
 #usersList li {
   background: rgba(255, 255, 255, 0.15);
   padding: 10px;
@@ -93,9 +99,14 @@ button:hover {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  background: rgba(255,255,255,0.1);
-  padding: 6px;
-  border-radius: 6px;
+}
+
+.scanner-section #reader {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  display: none;
 }
 
 #reader {
@@ -107,12 +118,9 @@ button:hover {
   object-fit: cover !important;
 }
 
-ul {
-  padding: 0;
-  list-style: none;
-}
-
-/* Desplegables de Cupones */
+/* ==========================================================
+   4. SISTEMA DE DESPLEGABLES DE CUPONES
+========================================================== */
 .coupon-item {
   background: rgba(255, 255, 255, 0.12);
   margin: 10px 0;
@@ -129,6 +137,7 @@ ul {
   align-items: center;
   cursor: pointer;
   font-weight: bold;
+  gap: 10px;
 }
 
 .coupon-body {
@@ -153,4 +162,50 @@ ul {
 .qr-container img {
   border: 6px solid white;
   border-radius: 6px;
+}
+
+/* ==========================================================
+   5. DISEÑO RESPONSIVO (OPTIMIZACIÓN PARA TELÉFONOS)
+========================================================== */
+@media (max-width: 480px) {
+  body {
+    padding: 5px;
+  }
+
+  .container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  /* Fuerza a que el temporizador pase a la fila de abajo en pantallas pequeñas */
+  .coupon-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 10px !important;
+    gap: 4px !important;
+  }
+
+  /* Evita que los códigos excesivamente largos ensanchen el diseño */
+  .coupon-text {
+    font-size: 14px !important;
+    word-break: break-all;
+  }
+
+  /* Formatea de forma segura la etiqueta del reloj amarillo */
+  .coupon-header span[id^="badge-"] {
+    color: #ffeb3b !important;
+    font-size: 11px !important;
+    text-align: left !important;
+    white-space: normal !important; /* Permite saltos de línea lógicos si falta espacio */
+    max-width: 100% !important;
+    display: block !important;
+  }
 }
