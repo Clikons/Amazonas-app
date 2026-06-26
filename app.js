@@ -132,75 +132,77 @@ function saveUsers(users) {
 
 
 // ===== 5. VISTAS Y RENDERIZADO DE INTERFAZ (UI) =====
+
 async function renderCoupons() {
   let list = document.getElementById("couponList");
   let userEmail = localStorage.getItem("loggedUser");
   if (!list || !userEmail) return;
 
-  list.innerHTML = "<p style='opacity:0.7'>Cargando tus cupones... ⏳</p>";
+  list.innerHTML = "<p style='opacity:0.7'>Buscando cupones activos... ⏳</p>";
 
-  // 1. Traer cupones globales existentes
   const { data: cupones, error: errorCupones } = await supabaseClient
     .from('Cupones')
     .select('*');
 
-  // 2. Traer cupones que ESTE usuario específico ya canjeó
   const { data: canjeados, error: errorCanjes } = await supabaseClient
     .from('CuponesCanjeados')
     .select('codigo_cupon')
     .eq('usuario_email', userEmail);
 
   if (errorCupones || errorCanjes) {
-    list.innerHTML = "<p style='opacity:0.7; color: #ff8a8a;'>Error al cargar cupones.</p>";
+    list.innerHTML = "<p style='opacity:0.7; color: #ff8a8a;'>Error al sincronizar con Supabase.</p>";
     return;
   }
 
   list.innerHTML = "";
 
-  // Crear una lista simple con los códigos que el usuario ya usó
   const codigosCanjeados = canjeados.map(c => c.codigo_cupon);
-
   const ahora = new Date();
   const diaHoy = ahora.toLocaleDateString('es-ES', { weekday: 'long' }); 
   const diaHoyFormateado = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
 
-  // Filtrar cupones válidos y que NO hayan sido canjeados por el usuario
   const cuponesVisibles = cupones.filter(cupon => {
-    // Si ya lo canjeó, lo ocultamos automáticamente
     if (codigosCanjeados.includes(cupon.codigo)) return false;
-
     const fechaFin = new Date(cupon.fecha_fin);
     const fechaInicio = new Date(cupon.fecha_inicio);
-    
     if (ahora < fechaInicio || ahora > fechaFin) return false;
-    
     if (cupon.dias_permitidos && cupon.dias_permitidos.length > 0) {
       return cupon.dias_permitidos.includes(diaHoyFormateado);
     }
-    
     return true;
   });
 
   if (cuponesVisibles.length === 0) {
-    list.innerHTML = "<p style='opacity:0.7'>No tienes cupones disponibles 🎟️</p>";
+    list.innerHTML = "<p style='opacity:0.7'>No tienes cupones disponibles en este momento 🎟️</p>";
     return;
   }
 
-  // Renderizar la lista con el QR encriptando: "EMAIL|CODIGO"
   cuponesVisibles.forEach((cupon, index) => {
     let itemDiv = document.createElement("div");
     itemDiv.className = "coupon-item";
     itemDiv.id = `coupon-${index}`;
 
+    // Validar dinámicamente qué texto mostrar a la derecha del cupón
+    let badgeTexto = "";
+    if (cupon.porcentaje_descuento !== null && cupon.porcentaje_descuento !== undefined) {
+      badgeTexto = `-${cupon.porcentaje_descuento}%`;
+    } else if (cupon.descripcion) {
+      badgeTexto = cupon.descripcion;
+    }
+
+    // Texto descriptivo detallado para el cuerpo interno del acordeón
+    let detalleInterno = cupon.descripcion ? `<b>Beneficio:</b> ${cupon.descripcion}<br>` : '';
+
     itemDiv.innerHTML = `
       <div class="coupon-header" onclick="toggleCouponDesplegable('${index}')">
         <span class="coupon-text">🎟️ ${cupon.codigo}</span>
-        <span style="color: #ffeb3b; font-weight: bold;">-${cupon.porcentaje_descuento}% 👇</span>
+        <span style="color: #ffeb3b; font-weight: bold; font-size: 14px; text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${badgeTexto} 👇</span>
       </div>
       <div class="coupon-body">
         <div class="coupon-details">
+          ${detalleInterno}
           <strong>Válido hasta:</strong> ${new Date(cupon.fecha_fin).toLocaleString('es-ES')}<br>
-          Muestra este código en el mostrador para canjear tu beneficio.
+          Muestra este código QR en caja para aplicar tu beneficio.
         </div>
         <div class="qr-container" id="qr-${index}"></div>
       </div>
@@ -208,13 +210,12 @@ async function renderCoupons() {
 
     list.appendChild(itemDiv);
 
-    // IMPORTANTE: El QR guardará el formato "EMAIL_DEL_USUARIO|CODIGO_CUPON" para que la cámara sepa a quién cobrárselo
-    const contenidoQR = `${userEmail}|${cupon.codigo}`;
+    const stringQR = `${userEmail}|${cupon.codigo}`;
 
     new QRCode(document.getElementById(`qr-${index}`), {
-      text: contenidoQR,
-      width: 140,
-      height: 140,
+      text: stringQR,
+      width: 130,
+      height: 130,
       colorDark : "#000000",
       colorLight : "#ffffff",
       correctLevel : QRCode.CorrectLevel.H
@@ -342,17 +343,25 @@ function detenerEscaneoCamara() {
 
 async function crearCuponAdminSupabase() {
   const codigo = document.getElementById("newCouponCode").value.trim().toUpperCase();
-  const descuento = parseInt(document.getElementById("newCouponDiscount").value);
+  const descuentoRaw = document.getElementById("newCouponDiscount").value;
+  const descripcion = document.getElementById("newCouponDescription").value.trim();
   const fechaInicio = document.getElementById("newCouponStart").value;
   const fechaFin = document.getElementById("newCouponEnd").value;
 
   const checkboxes = document.querySelectorAll('input[name="couponDays"]:checked');
   const diasPermitidos = Array.from(checkboxes).map(cb => cb.value);
 
-  if (!codigo || !descuento || !fechaInicio || !fechaFin) {
-    return alert("Por favor, completa el código, el descuento y ambas fechas.");
+  // Validaciones básicas
+  if (!codigo || !fechaInicio || !fechaFin) {
+    return alert("Por favor, completa obligatoriamente el código y ambas fechas.");
   }
 
+  // Comprobar que al menos insertó un porcentaje o una descripción
+  if (!descuentoRaw && !descripcion) {
+    return alert("Debes rellenar al menos el porcentaje de descuento o una descripción del beneficio.");
+  }
+
+  const descuento = descuentoRaw ? parseInt(descuentoRaw) : null;
   const diasFormateadosPostgres = diasPermitidos.length > 0 ? `{${diasPermitidos.join(',')}}` : null;
 
   const { data, error } = await supabaseClient
@@ -360,19 +369,24 @@ async function crearCuponAdminSupabase() {
     .insert([
       {
         codigo: codigo,
-        porcentaje_descuento: descuento,
+        porcentaje_descuento: descuento, // Guardará null si se dejó vacío
+        descripcion: descripcion || null, // Guardará null si se dejó vacío
         fecha_inicio: new Date(fechaInicio).toISOString(),
         fecha_fin: new Date(fechaFin).toISOString(),
         dias_permitidos: diasFormateadosPostgres
       }
     ]);
 
-  if (error) return alert("Error al conectar con Supabase: " + error.message);
+  if (error) {
+    return alert("Error al conectar con Supabase: " + error.message);
+  }
 
   alert(`¡Cupón '${codigo}' guardado exitosamente en Supabase!`);
 
+  // Limpiar el formulario
   document.getElementById("newCouponCode").value = "";
   document.getElementById("newCouponDiscount").value = "";
+  document.getElementById("newCouponDescription").value = "";
   document.getElementById("newCouponStart").value = "";
   document.getElementById("newCouponEnd").value = "";
   checkboxes.forEach(cb => cb.checked = false);

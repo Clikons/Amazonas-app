@@ -50,41 +50,61 @@
     <div id="admin-panel" class="hidden">
       <h2>⚙️ Panel de Administración</h2>
       
-      <div class="admin-box">
-        <h3>🎟️ Crear Nuevo Cupón</h3>
+      <div class="admin-box" style="width: 100%; max-width: 500px; margin: 0 auto 25px auto; padding: 15px; box-sizing: border-box; background: rgba(0,0,0,0.2); border-radius: 12px;">
+        <h3 style="text-align: center; margin-bottom: 20px;">🎟️ Crear Nuevo Cupón en Supabase</h3>
 
         <div style="margin-bottom: 15px;">
-          <input type="text" id="newCouponCode" placeholder="CÓDIGO DEL CUPÓN (Ej: JUEVES25)" style="text-transform: uppercase;">
+          <input type="text" id="newCouponCode" placeholder="CÓDIGO DEL CUPÓN (Ej: JUEVES25)" style="text-transform: uppercase; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; color: #000;">
+        </div>
+
+        <p style="font-size: 13px; opacity: 0.8; text-align: left; margin: 5px 0;">Pese a que puedes rellenar ambos, introduce al menos uno de los dos siguientes:</p>
+        
+        <div style="margin-bottom: 15px;">
+          <input type="number" id="newCouponDiscount" placeholder="Porcentaje de Descuento (Ej: 20) - Opcional">
         </div>
 
         <div style="margin-bottom: 15px;">
-          <input type="number" id="newCouponDiscount" placeholder="Porcentaje de Descuento (Ej: 20)">
+          <input type="text" id="newCouponDescription" placeholder="Descripción del beneficio (Ej: 2x1 en Burgers) - Opcional" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; color: #000;">
         </div>
 
-        <div class="date-group">
-          <label>📅 Fecha y Hora de Inicio:</label>
-          <input type="datetime-local" id="newCouponStart">
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label style="display:block; margin-bottom: 5px; font-weight:bold; font-size: 14px;">📅 Fecha y Hora de Inicio:</label>
+          <input type="datetime-local" id="newCouponStart" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; color: #000;">
         </div>
 
-        <div class="date-group">
-          <label>📅 Fecha y Hora de Expiración:</label>
-          <input type="datetime-local" id="newCouponEnd">
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label style="display:block; margin-bottom: 5px; font-weight:bold; font-size: 14px;">📅 Fecha y Hora de Expiración:</label>
+          <input type="datetime-local" id="newCouponEnd" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; color: #000;">
         </div>
 
         <div style="margin-bottom: 20px; text-align: left;">
           <p style="margin-bottom: 10px; font-weight: bold; font-size: 14px;">📆 Días válidos (Opcional):</p>
-          <div class="days-grid">
-            <label><input type="checkbox" name="couponDays" value="Lunes"> Lunes</label>
-            <label><input type="checkbox" name="couponDays" value="Martes"> Martes</label>
-            <label><input type="checkbox" name="couponDays" value="Miércoles"> Miércoles</label>
-            <label><input type="checkbox" name="couponDays" value="Jueves"> Jueves</label>
-            <label><input type="checkbox" name="couponDays" value="Viernes"> Viernes</label>
-            <label><input type="checkbox" name="couponDays" value="Sábado"> Sábado</label>
-            <label><input type="checkbox" name="couponDays" value="Domingo"> Domingo</label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Lunes"> Lunes
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Martes"> Martes
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Miércoles"> Miércoles
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Jueves"> Jueves
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Viernes"> Viernes
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Sábado"> Sábado
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+              <input type="checkbox" name="couponDays" value="Domingo"> Domingo
+            </label>
           </div>
         </div>
 
-        <button onclick="crearCuponAdminSupabase()" style="width: 100%; background-color: #3498db;">
+        <button onclick="crearCuponAdminSupabase()" style="width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
           💾 Guardar Cupón en Supabase
         </button>
       </div>
