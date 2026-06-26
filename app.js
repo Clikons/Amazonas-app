@@ -12,15 +12,12 @@ let intervalCupones = null;
 
 // ===== 2. CONTROL DE FLUJO AL CARGAR LA PÁGINA (window.onload) =====
 window.onload = async function () {
-  // 1. Obtenemos la sesión real y activa de Supabase
   const { data: { session }, error } = await supabaseClient.auth.getSession();
 
   if (session && session.user) {
     const email = session.user.email;
     localStorage.setItem("loggedUser", email);
-    registrarEnListaLocal(email);
 
-    // Verificación estricta: Solo si el email es exactamente el admin configurado
     if (email === ADMIN_USER) {
       localStorage.setItem("isAdmin", "true");
       showAdminPanel();
@@ -29,18 +26,15 @@ window.onload = async function () {
       showApp();
     }
   } else {
-    // Si no hay ninguna sesión activa en Supabase, limpiamos todo rastro por seguridad
     localStorage.removeItem("loggedUser");
     localStorage.removeItem("isAdmin");
     showLogin();
   }
 
-  // 2. Escuchador en tiempo real para cambios de estado (Login / Logout / Google Redirect)
   supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session && session.user) {
       const email = session.user.email;
       localStorage.setItem("loggedUser", email);
-      registrarEnListaLocal(email);
       
       if (email === ADMIN_USER) {
         localStorage.setItem("isAdmin", "true");
@@ -86,8 +80,6 @@ async function register() {
   if (error) {
     return alert("Error al crear cuenta: " + error.message);
   }
-
-  registrarEnListaLocal(email);
   
   const { error: loginErr } = await supabaseClient.auth.signInWithPassword({
     email: email,
@@ -138,22 +130,6 @@ async function logout() {
   location.reload();
 }
 
-function registrarEnListaLocal(email) {
-  let users = getUsers();
-  if (!users[email]) {
-    users[email] = "Protegida (Supabase Auth)"; 
-    saveUsers(users);
-  }
-}
-
-function getUsers() {
-  return JSON.parse(localStorage.getItem("users")) || {};
-}
-
-function saveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
 // ===== 4. VISTAS Y INTERFAZ DOM =====
 function showApp() {
   document.getElementById("login-section").style.display = "none";
@@ -191,11 +167,24 @@ function showAdminPanel() {
   let adminSection = document.getElementById("admin-section");
   if (adminSection) adminSection.style.display = "block";
   
-  renderUsers();
+  // Al entrar al panel administrativo, por defecto nos posicionamos en Cupones
+  switchAdminTab('cupones');
+}
+
+// Alternar entre pestañas del administrador de forma segura
+function switchAdminTab(tabName) {
+  if (tabName !== 'escaner') {
+    detenerEscaneoCamara();
+  }
+
+  document.getElementById("tab-cupones").style.display = tabName === "cupones" ? "block" : "none";
+  document.getElementById("tab-escaner").style.display = tabName === "escaner" ? "block" : "none";
+
+  document.getElementById("btn-tab-cupones").classList.toggle("active", tabName === "cupones");
+  document.getElementById("btn-tab-escaner").classList.toggle("active", tabName === "escaner");
 }
 
 // ===== 5. LÓGICA DE RENDERS Y CUPONES =====
-
 async function renderCoupons() {
   let list = document.getElementById("couponList");
   let userEmail = localStorage.getItem("loggedUser");
@@ -283,7 +272,6 @@ async function renderCoupons() {
           tituloVisual = "🎁 Cupón de Bienvenida";
         }
 
-        // 🚀 NUEVO: Cálculo exacto inicial incluyendo segundos
         let badgeInicial = badgeTexto + ' 👇';
         if (estaEnEspera) {
           const tiempoRestante = fechaObjetivo - ahora;
@@ -337,7 +325,6 @@ async function renderCoupons() {
         document.getElementById(`badge-${item.index}`).innerText = `${item.badgeTexto} 👇`;
         generarQRUnico(item.index, item.userEmail, item.codigo);
       } else {
-        // 🚀 NUEVO: Desglose dinámico en tiempo real que mide Horas, Minutos y Segundos
         const totalSegundos = Math.floor(tiempoRestante / 1000);
         const horas = Math.floor(totalSegundos / 3600);
         const minutos = Math.floor((totalSegundos % 3600) / 60);
@@ -353,7 +340,6 @@ async function renderCoupons() {
   }
 
   actualizarFiltroyRelojes();
-  // 🚀 CAMBIO CLAVE: Cambiado de 10000 a 1000 para que refresque CADA SEGUNDO
   intervalCupones = setInterval(actualizarFiltroyRelojes, 1000); 
 }
 
@@ -397,7 +383,6 @@ function toggleCouponDesplegable(index) {
 }
 
 // ===== 6. PANEL DE ADMINISTRADOR & ESCÁNER =====
-
 function iniciarEscaneoCamara() {
   if (html5QrcodeScanner) {
     alert("La cámara ya está encendida.");
@@ -409,7 +394,6 @@ function iniciarEscaneoCamara() {
     return;
   }
 
-  // 🚀 Forzamos a mostrar el contenedor envoltorio antes de arrancar la cámara
   const wrapper = document.getElementById("camera-wrapper");
   const readerDiv = document.getElementById("reader");
   if (wrapper && readerDiv) {
@@ -419,12 +403,11 @@ function iniciarEscaneoCamara() {
 
   html5QrcodeScanner = new Html5Qrcode("reader");
   
-  // Configuración responsiva para que se adapte perfectamente al recuadro en móviles
   const config = { 
     fps: 15, 
     qrbox: function(viewfinderWidth, viewfinderHeight) {
       const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      const edgeSize = Math.floor(minEdge * 0.7);
+      const edgeSize = Math.floor(minEdge * 0.75);
       return { width: edgeSize, height: edgeSize };
     }
   };
@@ -479,7 +462,6 @@ function detenerEscaneoCamara() {
     html5QrcodeScanner.stop().then(() => {
       html5QrcodeScanner = null;
       document.getElementById("reader").innerHTML = ""; 
-      // 🚀 Ocultamos el contenedor al apagar
       const wrapper = document.getElementById("camera-wrapper");
       if (wrapper) wrapper.style.display = "none";
     }).catch(err => console.error("Error al apagar cámara", err));
@@ -532,43 +514,4 @@ async function crearCuponAdminSupabase() {
   document.getElementById("newCouponStart").value = "";
   document.getElementById("newCouponEnd").value = "";
   checkboxes.forEach(cb => cb.checked = false);
-}
-
-function renderUsers() {
-  let users = getUsers();
-  let list = document.getElementById("usersList");
-  if (!list) return;
-  let searchInput = document.getElementById("searchUser");
-  let search = searchInput ? searchInput.value.toLowerCase() : "";
-
-  list.innerHTML = "";
-  let filtered = Object.keys(users).filter(user => user.toLowerCase().includes(search));
-
-  if (filtered.length === 0) {
-    list.innerHTML = "<li>No se encontraron usuarios</li>";
-    return;
-  }
-
-  filtered.forEach(user => {
-    let li = document.createElement("li");
-    li.innerHTML = `
-      <span>👤 <b>${user}</b> - 🔑 <span style="opacity:0.6; font-style:italic;">[Autenticación Protegida]</span></span>
-      <button onclick="deleteUser('${user}')" class="delete-btn" style="margin-left: 10px;">Eliminar</button>
-    `;
-    list.appendChild(li);
-  });
-}
-
-function deleteUser(user) {
-  let users = getUsers();
-  if (!users[user]) return;
-
-  let confirmDelete = confirm("¿Seguro que quieres eliminar a " + user + "?");
-  if (!confirmDelete) return;
-
-  delete users[user];
-  saveUsers(users);
-
-  localStorage.removeItem("coupons_" + user);
-  renderUsers();
 }

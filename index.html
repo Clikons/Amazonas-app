@@ -51,73 +51,76 @@
 
     <div id="admin-section" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0;">🛠️ Panel de Control (Admin)</h2>
+        <h2 style="margin: 0;">🛠️ Panel Admin</h2>
         <button type="button" onclick="logout()" class="delete-btn" style="margin: 0; padding: 6px 12px; font-size: 14px;">Salir</button>
       </div>
 
-      <div class="admin-box">
-        <h3>✨ Crear Nuevo Cupón</h3>
-        <input id="newCouponCode" placeholder="CÓDIGO DEL CUPÓN (Ej: BIENVENIDA)" style="text-transform: uppercase;">
-        <input id="newCouponDiscount" type="number" placeholder="Porcentaje Descuento (Opcional, Ej: 15)">
-        <input id="newCouponDescription" placeholder="Descripción corta del beneficio (Ej: 15% desc. en cenas)">
-        
-        <div style="text-align: left; margin: 10px 0;">
-          <label style="font-size: 14px; opacity: 0.9;">Fecha de Inicio (Activación):</label>
-          <input id="newCouponStart" type="datetime-local">
-        </div>
-
-        <div style="text-align: left; margin: 10px 0;">
-          <label style="font-size: 14px; opacity: 0.9;">Fecha de Fin (Vencimiento):</label>
-          <input id="newCouponEnd" type="datetime-local">
-        </div>
-
-        <div style="text-align: left; margin: 15px 0;">
-          <label style="font-size: 14px; opacity: 0.9; display: block; margin-bottom: 8px;">Días Permitidos (Si no marcas ninguno, será válido siempre):</label>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Lunes"> Lunes
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Martes"> Martes
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Miércoles"> Miércoles
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Jueves"> Jueves
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Viernes"> Viernes
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Sábado"> Sábado
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
-              <input type="checkbox" name="couponDays" value="Domingo"> Domingo
-            </label>
-          </div>
-        </div>
-
-        <button type="button" onclick="crearCuponAdminSupabase()" style="width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
-          💾 Guardar Cupón en Supabase
-        </button>
+      <div class="admin-tabs">
+        <button type="button" id="btn-tab-cupones" class="tab-btn active" onclick="switchAdminTab('cupones')">🎟️ Crear Cupón</button>
+        <button type="button" id="btn-tab-escaner" class="tab-btn" onclick="switchAdminTab('escaner')">📷 Escáner QR</button>
       </div>
 
-      <div class="admin-box scanner-section">
-        <h3>📷 Escáner de Cupones QR</h3>
-        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
-          <button type="button" onclick="iniciarEscaneoCamara()" style="background-color: #2ecc71; margin: 0;">Activar Cámara</button>
-          <button type="button" onclick="detenerEscaneoCamara()" class="delete-btn" style="margin: 0;">Apagar</button>
-  </div>
-  <div id="camera-wrapper" style="width: 100%; min-height: 300px; display: none; background: #111; border-radius: 10px; overflow: hidden;">
-    <div id="reader" style="width: 100% !important;"></div>
-  </div>
-</div>
+      <div id="tab-cupones" class="admin-tab-content">
+        <div class="admin-box">
+          <h3>✨ Crear Nuevo Cupón</h3>
+          <input id="newCouponCode" placeholder="CÓDIGO DEL CUPÓN (Ej: BIENVENIDA)" style="text-transform: uppercase;">
+          <input id="newCouponDiscount" type="number" placeholder="Porcentaje Descuento (Opcional, Ej: 15)">
+          <input id="newCouponDescription" placeholder="Descripción corta del beneficio (Ej: 15% desc. en cenas)">
+          
+          <div style="text-align: left; margin: 10px 0;">
+            <label style="font-size: 14px; opacity: 0.9;">Fecha de Inicio (Activación):</label>
+            <input id="newCouponStart" type="datetime-local">
+          </div>
 
-      <div class="admin-box">
-        <h3>👥 Usuarios Registrados (Local)</h3>
-        <input id="searchUser" oninput="renderUsers()" placeholder="Buscar usuario...">
-        <ul id="usersList"></ul>
+          <div style="text-align: left; margin: 10px 0;">
+            <label style="font-size: 14px; opacity: 0.9;">Fecha de Fin (Vencimiento):</label>
+            <input id="newCouponEnd" type="datetime-local">
+          </div>
+
+          <div style="text-align: left; margin: 15px 0;">
+            <label style="font-size: 14px; opacity: 0.9; display: block; margin-bottom: 8px;">Días Permitidos (Si no marcas ninguno, será válido siempre):</label>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Lunes"> Lunes
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Martes"> Martes
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Miércoles"> Miércoles
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Jueves"> Jueves
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Viernes"> Viernes
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Sábado"> Sábado
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" name="couponDays" value="Domingo"> Domingo
+              </label>
+            </div>
+          </div>
+
+          <button type="button" onclick="crearCuponAdminSupabase()" style="width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+            💾 Guardar Cupón en Supabase
+          </button>
+        </div>
+      </div>
+
+      <div id="tab-escaner" class="admin-tab-content" style="display: none;">
+        <div class="admin-box scanner-section">
+          <h3>📷 Escáner de Cupones QR</h3>
+          <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+            <button type="button" onclick="iniciarEscaneoCamara()" style="background-color: #2ecc71; margin: 0;">Activar Cámara</button>
+            <button type="button" onclick="detenerEscaneoCamara()" class="delete-btn" style="margin: 0;">Apagar</button>
+          </div>
+          <div id="camera-wrapper" style="width: 100%; min-height: 300px; display: none; background: #111; border-radius: 10px; overflow: hidden;">
+            <div id="reader" style="width: 100% !important;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
