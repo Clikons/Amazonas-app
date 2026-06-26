@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Amazonas App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="container">
+
+    <h1>🌿 Amazonas Restaurante</h1>
+
+    <div id="login-section">
+      <h2>Iniciar sesión</h2>
+      <input id="loginUser" placeholder="Usuario">
+      <input id="loginPass" type="password" placeholder="Contraseña">
+      <button onclick="login()">Entrar</button>
+      <p>¿No tienes cuenta?</p>
+      <button onclick="showRegister()">Registrarse</button>
+      <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(255,255,255,0.2);">
+      <button onclick="loginWithGoogle()" style="background: #fff; color: #444; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 10px auto; width: 100%; max-width: 420px;">
+        Google Sign-In
+      </button>
+    </div>
+
+    <div id="register-section" class="hidden">
+      <h2>Crear Cuenta Real</h2>
+      <input id="regUser" placeholder="Correo Electrónico (@)">
+      <input id="regPass" type="password" placeholder="Contraseña">
+      <button onclick="register()">Crear cuenta en Supabase Auth</button>
+      <p>¿Ya tienes cuenta?</p>
+      <button onclick="showLogin()">Volver al Login</button>
+    </div>
+
+    <div id="app-section" class="hidden">
+      <h2>🎉 ¡Bienvenido a Amazonas App!</h2>
+      <button onclick="logout()" class="delete-btn">Cerrar Sesión</button>
+      
+      <div style="margin: 25px 0;">
+        <h3>🎟️ Tus Cupones Disponibles</h3>
+        <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">Haz clic en cualquiera para desplegar su código QR dedicado.</p>
+        <ul id="couponList"></ul>
+      </div>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+      <h2>⚙️ Panel de Administración</h2>
+      
+      <div class="admin-box">
+        <h3>🎟️ Crear Nuevo Cupón</h3>
+
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="newCouponCode" placeholder="CÓDIGO DEL CUPÓN (Ej: JUEVES25)" style="text-transform: uppercase;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <input type="number" id="newCouponDiscount" placeholder="Porcentaje de Descuento (Ej: 20)">
+        </div>
+
+        <div class="date-group">
+          <label>📅 Fecha y Hora de Inicio:</label>
+          <input type="datetime-local" id="newCouponStart">
+        </div>
+
+        <div class="date-group">
+          <label>📅 Fecha y Hora de Expiración:</label>
+          <input type="datetime-local" id="newCouponEnd">
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+          <p style="margin-bottom: 10px; font-weight: bold; font-size: 14px;">📆 Días válidos (Opcional):</p>
+          <div class="days-grid">
+            <label><input type="checkbox" name="couponDays" value="Lunes"> Lunes</label>
+            <label><input type="checkbox" name="couponDays" value="Martes"> Martes</label>
+            <label><input type="checkbox" name="couponDays" value="Miércoles"> Miércoles</label>
+            <label><input type="checkbox" name="couponDays" value="Jueves"> Jueves</label>
+            <label><input type="checkbox" name="couponDays" value="Viernes"> Viernes</label>
+            <label><input type="checkbox" name="couponDays" value="Sábado"> Sábado</label>
+            <label><input type="checkbox" name="couponDays" value="Domingo"> Domingo</label>
+          </div>
+        </div>
+
+        <button onclick="crearCuponAdminSupabase()" style="width: 100%; background-color: #3498db;">
+          💾 Guardar Cupón en Supabase
+        </button>
+      </div>
+
+      <div class="admin-box scanner-section">
+        <h3>📷 Escáner de Cupones QR</h3>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+          <button onclick="iniciarEscaneoCamara()" style="background-color: #2ecc71; margin: 0;">Activar Cámara</button>
+          <button onclick="detenerEscaneoCamara()" class="delete-btn" style="margin: 0;">Apagar</button>
+        </div>
+        <div id="reader"></div>
+      </div>
+
+      <div class="admin-box">
+        <h3>Buscar usuario registrado</h3>
+        <input type="text" id="searchUser" oninput="renderUsers()" placeholder="Buscar por email...">
+        <ul id="usersList"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 10px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background: linear-gradient(135deg, #1b5e20, #ffcc00);
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 550px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  box-sizing: border-box;
+  color: #000;
+}
+
+input:focus {
+  box-shadow: 0 0 0 3px #ffeb3b;
+}
+
+button {
+  padding: 12px 20px;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.02);
+}
+
+/* Paneles y Contenedores */
+#admin-panel {
+  margin-top: 25px;
+  border-top: 2px dashed rgba(255,255,255,0.3);
+  padding-top: 20px;
+}
+
+.admin-box {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.date-group {
+  text-align: left;
+  margin-bottom: 12px;
+}
+.date-group label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+.days-grid label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  background: rgba(255,255,255,0.1);
+  padding: 6px;
+  border-radius: 6px;
+}
+
+/* Ajustes Estéticos del Lector de Cámara */
+
+/* Corrección de diseño adaptable para el lector QR */
+#reader {
+  box-sizing: border-box;
+  border: 2px dashed rgba(255, 255, 255, 0.3) !important;
+}
+
+#reader video {
+  object-fit: cover !important;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+/* Desplegables de Cupones */
+.coupon-item {
+  background: rgba(255, 255, 255, 0.12);
+  margin: 10px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: left;
+}
+.coupon-header {
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: bold;
+}
+.coupon-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.coupon-item.open .coupon-body {
+  padding: 15px;
+  max-height: 280px;
+}
+.qr-container {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+#usersList li {
+  background: rgba(255,255,255,0.1);
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.delete-btn {
+  background: rgba(0, 0, 0, 0.5);
+}
+.delete-btn:hover {
+  background: #000;
+}
+
+.hidden {
+  display: none !important;
+}
