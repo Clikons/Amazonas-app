@@ -50,7 +50,7 @@ window.onload = async function () {
 async function loginWithGoogle() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: 'https://clikons.github.io/Amazonas-app/' } // URL exacta de redirección
   });
   if (error) alert("Error al conectar con Google: " + error.message);
 }
