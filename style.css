@@ -36,60 +36,60 @@ input {
   color: #000;
 }
 
-input:focus {
-  box-shadow: 0 0 0 3px #ffeb3b;
-}
-
 button {
-  padding: 12px 20px;
-  background: #d32f2f;
-  color: white;
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0 0 0;
   border: none;
   border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
+  background-color: #b62c2c;
+  color: white;
+  font-size: 16px;
   font-weight: bold;
-  transition: 0.2s;
-}
-
-button:hover {
-  transform: scale(1.02);
-}
-
-/* Paneles y Contenedores */
-#admin-panel {
-  margin-top: 25px;
-  border-top: 2px dashed rgba(255,255,255,0.3);
-  padding-top: 20px;
-}
-
-.admin-box {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
   box-sizing: border-box;
 }
 
-.date-group {
-  text-align: left;
-  margin-bottom: 12px;
-}
-.date-group label {
-  display: block;
-  font-size: 13px;
-  margin-bottom: 4px;
-  opacity: 0.9;
+button:hover {
+  background-color: #1b5e20;
 }
 
-.days-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 8px;
+.delete-btn {
+  background-color: #c62828 !important;
 }
-.days-grid label {
+
+.delete-btn:hover {
+  background-color: #b71c1c !important;
+}
+
+.admin-box {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.admin-box h3 {
+  margin-top: 0;
+}
+
+.scanner-section #reader {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  display: none;
+}
+
+#usersList li {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 6px;
   font-size: 13px;
@@ -98,9 +98,6 @@ button:hover {
   border-radius: 6px;
 }
 
-/* Ajustes Estéticos del Lector de Cámara */
-
-/* Corrección de diseño adaptable para el lector QR */
 #reader {
   box-sizing: border-box;
   border: 2px dashed rgba(255, 255, 255, 0.3) !important;
@@ -122,52 +119,38 @@ ul {
   border-radius: 12px;
   overflow: hidden;
   text-align: left;
+  transition: opacity 0.3s ease, filter 0.3s ease;
 }
+
 .coupon-header {
   padding: 14px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   cursor: pointer;
   font-weight: bold;
 }
+
 .coupon-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
-  background: rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.coupon-item.open .coupon-body {
-  padding: 15px;
-  max-height: 280px;
-}
-.qr-container {
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
+  transition: max-height 0.25s ease-out, padding 0.25s ease-out;
+  background: rgba(0, 0, 0, 0.15);
 }
 
-#usersList li {
-  background: rgba(255,255,255,0.1);
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.coupon-details {
   font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
 }
 
-.delete-btn {
-  background: rgba(0, 0, 0, 0.5);
-}
-.delete-btn:hover {
-  background: #000;
+.qr-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
 }
 
-.hidden {
-  display: none !important;
+.qr-container img {
+  border: 6px solid white;
+  border-radius: 6px;
 }
